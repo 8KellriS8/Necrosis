@@ -6,6 +6,9 @@ public class Weapon : MonoBehaviour
 {
     public RawImage[] weaponImages; // [0] - Idle, [1] - Aim, [2] - Shoot
     public float shootDuration = 0.1f;
+    public float dmg = 10f;
+    public float accuracy = 1f;
+    public Animator animator;
     
     private enum WeaponState { Idle, Aim, Shoot }
     private bool isShooting = false;
@@ -25,11 +28,19 @@ public class Weapon : MonoBehaviour
         // Shift зажат = Idle, иначе Aim
         if (keyboard.leftShiftKey.isPressed)
         {
-            if (!isShooting) ShowState(WeaponState.Idle);
+            if (!isShooting)
+            {
+                ShowState(WeaponState.Idle);
+                animator.SetBool("Targetting", false);
+            }
         }
         else
         {
-            if (!isShooting) ShowState(WeaponState.Aim);
+            if (!isShooting)
+            {
+                ShowState(WeaponState.Aim);
+                animator.SetBool("Targetting", true);
+            }
         }
 
         // Выстрел
@@ -44,6 +55,7 @@ public class Weapon : MonoBehaviour
             timer -= Time.deltaTime;
             if (timer <= 0f)
             {
+                animator.SetBool("Shooting", false);
                 isShooting = false;
                 // Возврат
                 if (keyboard.leftShiftKey.isPressed)
@@ -57,6 +69,7 @@ public class Weapon : MonoBehaviour
     void Shoot()
     {
         isShooting = true;
+        animator.SetBool("Shooting", true);
         timer = shootDuration;
         ShowState(WeaponState.Shoot);
         
