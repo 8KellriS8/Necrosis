@@ -9,6 +9,9 @@ public class Weapon : MonoBehaviour
     public float dmg = 10f;
     public float accuracy = 1f;
     public Animator animator;
+    [Header("Эффекты выстрела")]
+    public ParticleSystem enemyHitParticles; // Ссылка на префаб или объект ParticleSystem на сцене
+    public GameObject bulletHolePrefab;
     
     private enum WeaponState { Idle, Aim, Shoot }
     private bool isShooting = false;
@@ -72,11 +75,58 @@ public class Weapon : MonoBehaviour
         animator.SetBool("Shooting", true);
         timer = shootDuration;
         ShowState(WeaponState.Shoot);
-        
-        // Raycast выстрел
+    
+        // Raycast выстрел из центра экрана
         RaycastHit hit;
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        Physics.Raycast(ray, out hit, 100f);
+
+        // Проверяем, попал ли рейкаст во что-нибудь в пределах 100 метров
+        if (Physics.Raycast(ray, out hit, 100f))
+        {
+            // 1. Если попали во врага
+            if (hit.collider.CompareTag("enemy"))
+            {
+                // Пытаемся взять компонент EnemyAI у задетого объекта
+                EnemyAI enemy = hit.collider.GetComponent<EnemyAI>();
+            
+                // Если не нашли на самом коллайдере, ищем в родительских объектах (полезно для составных моделей)
+                if (enemy == null) enemy = hit.collider.GetComponentInParent<EnemyAI>();
+
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(dmg); // Наносим урон (замените 25f на ваш урон оружия)
+                }
+
+                // Перемещаем партиклы в точку попадания и запускаем их
+                if (enemyHitParticles != null)
+                {
+                    enemyHitParticles.transform.position = hit.point;
+                    // Поворачиваем партиклы в сторону, откуда прилетела пуля (на игрока)
+                    enemyHitParticles.transform.forward = hit.normal; 
+                    enemyHitParticles.Play();
+                }
+            }
+            // 2. Если попали в окружение / объект
+            else if (hit.collider.CompareTag("object"))
+            {
+                if (bulletHolePrefab != null)
+                {
+                    // Сдвигаем спавн спрайта чуть-чуть вперед от стены (на 0.01м), чтобы избежать мерцания текстур (Z-fighting)
+                    Vector3 spawnPosition = hit.point + (hit.normal * 0.01f);
+
+                    // Создаем квад/спрайт следа от пули и разворачиваем его по нормали (плоскости поверхности)
+                    Quaternion spawnRotation = Quaternion.LookRotation(hit.normal);
+                
+                    GameObject bulletHole = Instantiate(bulletHolePrefab, spawnPosition, spawnRotation);
+
+                    // Дополнительно: привязываем след к объекту, чтобы он двигался вместе с ним, если объект подвижный
+                    bulletHole.transform.SetParent(hit.collider.transform);
+
+                    // Рекомендуется: уничтожать след от пули через 10-20 секунд, чтобы не забивать память
+                    Destroy(bulletHole, 20f);
+                }
+            }
+        }
     }
 
     void ShowState(WeaponState state)
