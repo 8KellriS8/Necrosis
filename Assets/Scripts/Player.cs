@@ -5,8 +5,11 @@ public class Player : MonoBehaviour
 
 {
     public float speed = 5f;
+    public float hp = 100f;
     private Vector2 moveInput;
     private float speedMult = 1.0f;
+    public int ammo1 = 0;
+    public int ammo2 = 0;
 
     void Update()
     {
@@ -30,5 +33,23 @@ public class Player : MonoBehaviour
         
         Vector3 move = transform.right * input.x + transform.forward * input.y;
         transform.Translate(move * speed * Time.deltaTime * speedMult, Space.World);
+    }
+    public void GetHit(float dmg)
+    {
+        hp -= dmg;
+        Debug.Log(hp);
+    }
+    public void ChangeAmmoAmount(int type, int amount)
+    {
+        if (type == 1)
+        {
+            if  (ammo1+amount>130)  ammo1 = 130;
+            else ammo1 += amount;
+        }
+        else
+        {
+            if  (ammo2+amount>80)  ammo2 = 130;
+            else ammo2 += amount;
+        }
     }
 }
