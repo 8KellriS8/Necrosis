@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8494448947103644252}
   - component: {fileID: 7889762511079293653}
   - component: {fileID: -4067077845522264537}
-  - component: {fileID: 5976485104659516135}
+  - component: {fileID: 5080925247939362150}
   m_Layer: 3
   m_Name: BasicZombie
   m_TagString: enemy
@@ -46,7 +46,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 15
+  m_Speed: 30
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 90
@@ -67,22 +67,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 2467222731775806574}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 849df36524b05574d848eee3b214f136, type: 3}
+  m_Script: {fileID: 11500000, guid: 2dabdbc7f1e938145bb09dd111ea4b26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   hp: 100
   moveSpeed: 5
-  attackDistance: 1.5
-  chaseDistance: 18
-  wanderRadius: 3
-  wanderInterval: 25
+  attackDistance: 1
+  chaseDistance: 25
+  wanderRadius: 5
+  wanderInterval: 10
   attackCooldown: 1.5
   damageActiveDuration: 1
-  damageCollider: {fileID: 9164314419848260066}
+  damageCollider: {fileID: 0}
   isDead: 0
   isAtacking: 0
---- !u!65 &5976485104659516135
-BoxCollider:
+--- !u!136 &5080925247939362150
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -99,9 +99,11 @@ BoxCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1.09, y: 2.3, z: 0.53}
-  m_Center: {x: 0, y: 1.34, z: 0}
+  serializedVersion: 2
+  m_Radius: 0.65
+  m_Height: 2.5
+  m_Direction: 1
+  m_Center: {x: 0, y: 1.5, z: 0}
 --- !u!1 &4312914558479184112
 GameObject:
   m_ObjectHideFlags: 0

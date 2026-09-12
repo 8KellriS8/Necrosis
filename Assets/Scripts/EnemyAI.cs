@@ -1,50 +1,50 @@
-using System.Collections;
+п»їusing System.Collections;
 using UnityEngine;
-using UnityEngine.AI; // Обязательно для работы с NavMesh
+using UnityEngine.AI; // ГЋГЎГїГ§Г ГІГҐГ«ГјГ­Г® Г¤Г«Гї Г°Г ГЎГ®ГІГ» Г± NavMesh
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyAI : MonoBehaviour
 {
 
-    [Header("Характеристики")]
+    [Header("Г•Г Г°Г ГЄГІГҐГ°ГЁГ±ГІГЁГЄГЁ")]
     public float hp = 100f;
     public float moveSpeed = 2f;
     
-    [Header("Дистанции")]
-    public float attackDistance = 3f; // Дистанция, на которой начинается атака
-    public float chaseDistance = 25f; // На каком расстоянии враг начинает преследовать игрока
+    [Header("Г„ГЁГ±ГІГ Г­Г¶ГЁГЁ")]
+    public float attackDistance = 3f; // Г„ГЁГ±ГІГ Г­Г¶ГЁГї, Г­Г  ГЄГ®ГІГ®Г°Г®Г© Г­Г Г·ГЁГ­Г ГҐГІГ±Гї Г ГІГ ГЄГ 
+    public float chaseDistance = 25f; // ГЌГ  ГЄГ ГЄГ®Г¬ Г°Г Г±Г±ГІГ®ГїГ­ГЁГЁ ГўГ°Г ГЈ Г­Г Г·ГЁГ­Г ГҐГІ ГЇГ°ГҐГ±Г«ГҐГ¤Г®ГўГ ГІГј ГЁГЈГ°Г®ГЄГ 
 
-    [Header("Настройки состояния покоя (NavMesh)")]
-    public float wanderRadius = 5f;       // Радиус случайного передвижения
-    public float wanderInterval = 4f;     // Раз во сколько секунд искать новую точку
+    [Header("ГЌГ Г±ГІГ°Г®Г©ГЄГЁ Г±Г®Г±ГІГ®ГїГ­ГЁГї ГЇГ®ГЄГ®Гї (NavMesh)")]
+    public float wanderRadius = 5f;       // ГђГ Г¤ГЁГіГ± Г±Г«ГіГ·Г Г©Г­Г®ГЈГ® ГЇГҐГ°ГҐГ¤ГўГЁГ¦ГҐГ­ГЁГї
+    public float wanderInterval = 4f;     // ГђГ Г§ ГўГ® Г±ГЄГ®Г«ГјГЄГ® Г±ГҐГЄГіГ­Г¤ ГЁГ±ГЄГ ГІГј Г­Г®ГўГіГѕ ГІГ®Г·ГЄГі
 
-    [Header("Тайминги атаки")]
-    public float attackCooldown = 1.5f;   // Длительность остановки/атаки (время покоя после удара)
-    public float damageActiveDuration = 0.5f; // Сколько времени активен коллайдер урона (13-й кадр)
+    [Header("Г’Г Г©Г¬ГЁГ­ГЈГЁ Г ГІГ ГЄГЁ")]
+    public float attackCooldown = 1.5f;   // Г„Г«ГЁГІГҐГ«ГјГ­Г®Г±ГІГј Г®Г±ГІГ Г­Г®ГўГЄГЁ/Г ГІГ ГЄГЁ (ГўГ°ГҐГ¬Гї ГЇГ®ГЄГ®Гї ГЇГ®Г±Г«ГҐ ГіГ¤Г Г°Г )
+    public float damageActiveDuration = 0.5f; // Г‘ГЄГ®Г«ГјГЄГ® ГўГ°ГҐГ¬ГҐГ­ГЁ Г ГЄГІГЁГўГҐГ­ ГЄГ®Г«Г«Г Г©Г¤ГҐГ° ГіГ°Г®Г­Г  (13-Г© ГЄГ Г¤Г°)
 
-    [Header("Ссылки на компоненты")]
-    public Collider damageCollider;      // Ссылка на ДОЧЕРНИЙ коллайдер урона
+    [Header("Г‘Г±Г»Г«ГЄГЁ Г­Г  ГЄГ®Г¬ГЇГ®Г­ГҐГ­ГІГ»")]
+    public Collider damageCollider;      // Г‘Г±Г»Г«ГЄГ  Г­Г  Г„ГЋГ—Г…ГђГЌГ€Г‰ ГЄГ®Г«Г«Г Г©Г¤ГҐГ° ГіГ°Г®Г­Г 
 
-    // Публичные переменные для DoomBillboard
+    // ГЏГіГЎГ«ГЁГ·Г­Г»ГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ Г¤Г«Гї DoomBillboard
     [HideInInspector] public bool isDead = false;
     [HideInInspector] public bool isAtacking = false;
 
-    private Transform target;             // Цель (игрок)
+    private Transform target;             // Г–ГҐГ«Гј (ГЁГЈГ°Г®ГЄ)
     private float wanderTimer;
-    private bool isCooldown = false;      // Флаг задержки/остановки ИИ во время атаки
-    private NavMeshAgent agent;           // Навигационный агент
+    private bool isCooldown = false;      // Г”Г«Г ГЈ Г§Г Г¤ГҐГ°Г¦ГЄГЁ/Г®Г±ГІГ Г­Г®ГўГЄГЁ Г€Г€ ГўГ® ГўГ°ГҐГ¬Гї Г ГІГ ГЄГЁ
+    private NavMeshAgent agent;           // ГЌГ ГўГЁГЈГ Г¶ГЁГ®Г­Г­Г»Г© Г ГЈГҐГ­ГІ
 
     void Start()
     {
-        // Автоматически находим игрока по тегу
+        // ГЂГўГІГ®Г¬Г ГІГЁГ·ГҐГ±ГЄГЁ Г­Г ГµГ®Г¤ГЁГ¬ ГЁГЈГ°Г®ГЄГ  ГЇГ® ГІГҐГЈГі
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null) target = player.transform;
 
-        // Настраиваем NavMeshAgent
+        // ГЌГ Г±ГІГ°Г ГЁГўГ ГҐГ¬ NavMeshAgent
         agent = GetComponent<NavMeshAgent>();
         agent.speed = moveSpeed;
 
-        wanderTimer = wanderInterval; // Начать движение сразу в состоянии покоя
+        wanderTimer = wanderInterval; // ГЌГ Г·Г ГІГј Г¤ГўГЁГ¦ГҐГ­ГЁГҐ Г±Г°Г Г§Гі Гў Г±Г®Г±ГІГ®ГїГ­ГЁГЁ ГЇГ®ГЄГ®Гї
 
         if (damageCollider != null) damageCollider.enabled = false;
     }
@@ -53,7 +53,7 @@ public class EnemyAI : MonoBehaviour
     {
         if (isDead) return;
 
-        // Проверка здоровья
+        // ГЏГ°Г®ГўГҐГ°ГЄГ  Г§Г¤Г®Г°Г®ГўГјГї
         if (hp <= 0)
         {
             Die();
@@ -62,50 +62,50 @@ public class EnemyAI : MonoBehaviour
 
         if (target == null) return;
 
-        // Дистанция рассчитывается по NavMesh или по прямой (для точности используем Vector3.Distance)
+        // Г„ГЁГ±ГІГ Г­Г¶ГЁГї Г°Г Г±Г±Г·ГЁГІГ»ГўГ ГҐГІГ±Гї ГЇГ® NavMesh ГЁГ«ГЁ ГЇГ® ГЇГ°ГїГ¬Г®Г© (Г¤Г«Гї ГІГ®Г·Г­Г®Г±ГІГЁ ГЁГ±ГЇГ®Г«ГјГ§ГіГҐГ¬ Vector3.Distance)
         float distanceToTarget = Vector3.Distance(transform.position, target.position);
 
-        // Если идет атака или кулдаун — агент полностью стоит на месте
+        // Г…Г±Г«ГЁ ГЁГ¤ГҐГІ Г ГІГ ГЄГ  ГЁГ«ГЁ ГЄГіГ«Г¤Г ГіГ­ вЂ” Г ГЈГҐГ­ГІ ГЇГ®Г«Г­Г®Г±ГІГјГѕ Г±ГІГ®ГЁГІ Г­Г  Г¬ГҐГ±ГІГҐ
         if (isCooldown || isAtacking)
         {
             StopAgent();
             return;
         }
-        // Проверяем дистанцию атаки
+        // ГЏГ°Г®ГўГҐГ°ГїГҐГ¬ Г¤ГЁГ±ГІГ Г­Г¶ГЁГѕ Г ГІГ ГЄГЁ
         if (distanceToTarget <= attackDistance)
         {
-            // Игрок достаточно близко для атаки
+            // Г€ГЈГ°Г®ГЄ Г¤Г®Г±ГІГ ГІГ®Г·Г­Г® ГЎГ«ГЁГ§ГЄГ® Г¤Г«Гї Г ГІГ ГЄГЁ
             if (IsPlayerInFront())
             {
                 StartCoroutine(AttackRoutine());
             }
             else
             {
-                // Игрок близко, но находится сзади/сбоку — идём к нему
+                // Г€ГЈГ°Г®ГЄ ГЎГ«ГЁГ§ГЄГ®, Г­Г® Г­Г ГµГ®Г¤ГЁГІГ±Гї Г±Г§Г Г¤ГЁ/Г±ГЎГ®ГЄГі вЂ” ГЁГ¤ВёГ¬ ГЄ Г­ГҐГ¬Гі
                 ResumeAgent();
                 agent.SetDestination(target.position);
             }
         }
         else if (distanceToTarget <= chaseDistance)
         {
-            // Игрок находится в пределах 25 метров — преследуем его
+            // Г€ГЈГ°Г®ГЄ Г­Г ГµГ®Г¤ГЁГІГ±Гї Гў ГЇГ°ГҐГ¤ГҐГ«Г Гµ 25 Г¬ГҐГІГ°Г®Гў вЂ” ГЇГ°ГҐГ±Г«ГҐГ¤ГіГҐГ¬ ГҐГЈГ®
             ResumeAgent();
             agent.SetDestination(target.position);
         }
         else
         {
-            // Игрок дальше 25 метров — случайно блуждаем
+            // Г€ГЈГ°Г®ГЄ Г¤Г Г«ГјГёГҐ 25 Г¬ГҐГІГ°Г®Гў вЂ” Г±Г«ГіГ·Г Г©Г­Г® ГЎГ«ГіГ¦Г¤Г ГҐГ¬
             ResumeAgent();
             WanderBehavior();
         }
     }
 
-    // Логика блуждания по NavMesh
+    // Г‹Г®ГЈГЁГЄГ  ГЎГ«ГіГ¦Г¤Г Г­ГЁГї ГЇГ® NavMesh
     private void WanderBehavior()
     {
         wanderTimer += Time.deltaTime;
 
-        // Ищем новую точку, если прошёл интервал ИЛИ если агент уже дошёл до старой точки
+        // Г€Г№ГҐГ¬ Г­Г®ГўГіГѕ ГІГ®Г·ГЄГі, ГҐГ±Г«ГЁ ГЇГ°Г®ГёВёГ« ГЁГ­ГІГҐГ°ГўГ Г« Г€Г‹Г€ ГҐГ±Г«ГЁ Г ГЈГҐГ­ГІ ГіГ¦ГҐ Г¤Г®ГёВёГ« Г¤Г® Г±ГІГ Г°Г®Г© ГІГ®Г·ГЄГЁ
         if (wanderTimer >= wanderInterval || (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending))
         {
             Vector3 newTarget = GetRandomNavMeshPoint(transform.position, wanderRadius);
@@ -114,23 +114,23 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Поиск валидной точки именно НА сетке NavMesh
+    // ГЏГ®ГЁГ±ГЄ ГўГ Г«ГЁГ¤Г­Г®Г© ГІГ®Г·ГЄГЁ ГЁГ¬ГҐГ­Г­Г® ГЌГЂ Г±ГҐГІГЄГҐ NavMesh
     private Vector3 GetRandomNavMeshPoint(Vector3 center, float radius)
     {
         Vector3 randomDirection = Random.insideUnitSphere * radius;
         randomDirection += center;
 
         NavMeshHit hit;
-        // Ищем ближайшую точку на NavMesh в пределах радиуса (маска -1 означает все слои NavMesh)
+        // Г€Г№ГҐГ¬ ГЎГ«ГЁГ¦Г Г©ГёГіГѕ ГІГ®Г·ГЄГі Г­Г  NavMesh Гў ГЇГ°ГҐГ¤ГҐГ«Г Гµ Г°Г Г¤ГЁГіГ±Г  (Г¬Г Г±ГЄГ  -1 Г®Г§Г­Г Г·Г ГҐГІ ГўГ±ГҐ Г±Г«Г®ГЁ NavMesh)
         if (NavMesh.SamplePosition(randomDirection, out hit, radius, -1))
         {
             return hit.position;
         }
 
-        return center; // Если точку не нашли, возвращаем текущую позицию
+        return center; // Г…Г±Г«ГЁ ГІГ®Г·ГЄГі Г­ГҐ Г­Г ГёГ«ГЁ, ГўГ®Г§ГўГ°Г Г№Г ГҐГ¬ ГІГҐГЄГіГ№ГіГѕ ГЇГ®Г§ГЁГ¶ГЁГѕ
     }
 
-    // Проверка условий переднего спрайта (совпадает с логикой DoomBillboard)
+    // ГЏГ°Г®ГўГҐГ°ГЄГ  ГіГ±Г«Г®ГўГЁГ© ГЇГҐГ°ГҐГ¤Г­ГҐГЈГ® Г±ГЇГ°Г Г©ГІГ  (Г±Г®ГўГЇГ Г¤Г ГҐГІ Г± Г«Г®ГЈГЁГЄГ®Г© DoomBillboard)
     private bool IsPlayerInFront()
     {
         Vector3 lookDir = target.position - transform.position;
@@ -141,40 +141,40 @@ public class EnemyAI : MonoBehaviour
 
         int directionIndex = Mathf.RoundToInt(angle / 60f) % 6;
 
-        // Индексы 0, 1 и 5 соответствуют передним ракурсам
+        // Г€Г­Г¤ГҐГЄГ±Г» 0, 1 ГЁ 5 Г±Г®Г®ГІГўГҐГІГ±ГІГўГіГѕГІ ГЇГҐГ°ГҐГ¤Г­ГЁГ¬ Г°Г ГЄГіГ°Г±Г Г¬
         return directionIndex == 0 || directionIndex == 1 || directionIndex == 5;
     }
 
-    // Корутина атаки
+    // ГЉГ®Г°ГіГІГЁГ­Г  Г ГІГ ГЄГЁ
     private IEnumerator AttackRoutine()
     {
         isAtacking = true;
         isCooldown = true;
         StopAgent();
 
-        // Мгновенно доворачиваем врага лицом к игроку перед ударом
+        // ГЊГЈГ­Г®ГўГҐГ­Г­Г® Г¤Г®ГўГ®Г°Г Г·ГЁГўГ ГҐГ¬ ГўГ°Г ГЈГ  Г«ГЁГ¶Г®Г¬ ГЄ ГЁГЈГ°Г®ГЄГі ГЇГҐГ°ГҐГ¤ ГіГ¤Г Г°Г®Г¬
         Vector3 lookAtTarget = target.position - transform.position;
         lookAtTarget.y = 0;
         if (lookAtTarget != Vector3.zero) transform.forward = lookAtTarget.normalized;
 
-        // Включаем триггер нанесения урона
+        // Г‚ГЄГ«ГѕГ·Г ГҐГ¬ ГІГ°ГЁГЈГЈГҐГ° Г­Г Г­ГҐГ±ГҐГ­ГЁГї ГіГ°Г®Г­Г 
         if (damageCollider != null) damageCollider.enabled = true;
 
-        // Ждем время активной фазы урона (0.5 сек — 13-й кадр)
+        // Г†Г¤ГҐГ¬ ГўГ°ГҐГ¬Гї Г ГЄГІГЁГўГ­Г®Г© ГґГ Г§Г» ГіГ°Г®Г­Г  (0.5 Г±ГҐГЄ вЂ” 13-Г© ГЄГ Г¤Г°)
         yield return new WaitForSeconds(damageActiveDuration);
 
-        // Выключаем триггер урона (14-й кадр, застывание)
+        // Г‚Г»ГЄГ«ГѕГ·Г ГҐГ¬ ГІГ°ГЁГЈГЈГҐГ° ГіГ°Г®Г­Г  (14-Г© ГЄГ Г¤Г°, Г§Г Г±ГІГ»ГўГ Г­ГЁГҐ)
         if (damageCollider != null) damageCollider.enabled = false;
         isAtacking = false; 
 
-        // Дожидаемся окончания общего кулдауна атаки
+        // Г„Г®Г¦ГЁГ¤Г ГҐГ¬Г±Гї Г®ГЄГ®Г­Г·Г Г­ГЁГї Г®ГЎГ№ГҐГЈГ® ГЄГіГ«Г¤Г ГіГ­Г  Г ГІГ ГЄГЁ
         float remainingCooldown = Mathf.Max(0f, attackCooldown - damageActiveDuration);
         yield return new WaitForSeconds(remainingCooldown);
 
         isCooldown = false;
     }
 
-    // Вспомогательные методы управления NavMeshAgent
+    // Г‚Г±ГЇГ®Г¬Г®ГЈГ ГІГҐГ«ГјГ­Г»ГҐ Г¬ГҐГІГ®Г¤Г» ГіГЇГ°Г ГўГ«ГҐГ­ГЁГї NavMeshAgent
     private void StopAgent()
     {
         if (agent.isOnNavMesh)
@@ -208,7 +208,7 @@ public class EnemyAI : MonoBehaviour
 
         if (damageCollider != null) damageCollider.enabled = false;
         
-        // Полностью отключаем NavMeshAgent, чтобы он не мешал физике и другим объектам
+        // ГЏГ®Г«Г­Г®Г±ГІГјГѕ Г®ГІГЄГ«ГѕГ·Г ГҐГ¬ NavMeshAgent, Г·ГІГ®ГЎГ» Г®Г­ Г­ГҐ Г¬ГҐГёГ Г« ГґГЁГ§ГЁГЄГҐ ГЁ Г¤Г°ГіГЈГЁГ¬ Г®ГЎГєГҐГЄГІГ Г¬
         if (agent != null)
         {
             agent.enabled = false; 
@@ -217,6 +217,6 @@ public class EnemyAI : MonoBehaviour
         Collider mainCollider = GetComponent<Collider>();
         if (mainCollider != null) mainCollider.enabled = false;
 
-        Debug.Log($"{gameObject.name} уничтожен (NavMeshAgent отключен).");
+        Debug.Log($"{gameObject.name} ГіГ­ГЁГ·ГІГ®Г¦ГҐГ­ (NavMeshAgent Г®ГІГЄГ«ГѕГ·ГҐГ­).");
     }
 }
