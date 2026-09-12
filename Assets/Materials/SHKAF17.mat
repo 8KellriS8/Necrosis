@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: BUNKER02_plate (1) 3
+  m_Name: SHKAF17
   m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -26,8 +26,8 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 93de55a9b3df8dc439ec14e8567f1d86, type: 3}
-        m_Scale: {x: 50, y: 20}
+        m_Texture: {fileID: 2800000, guid: 37e4d03092366984394e184d33cc6e16, type: 3}
+        m_Scale: {x: 100, y: 4}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
@@ -50,8 +50,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 93de55a9b3df8dc439ec14e8567f1d86, type: 3}
-        m_Scale: {x: 50, y: 20}
+        m_Texture: {fileID: 2800000, guid: 37e4d03092366984394e184d33cc6e16, type: 3}
+        m_Scale: {x: 100, y: 4}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
@@ -122,7 +122,7 @@ Material:
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &659650782169424193
+--- !u!114 &2583089695147172991
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
