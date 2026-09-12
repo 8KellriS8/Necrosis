@@ -620,7 +620,7 @@ MonoBehaviour:
   - {fileID: 4060503531762210759}
   - {fileID: 5177937785372897782}
   shootDuration: 0.1
-  dmg: 10
+  dmg: 25
   accuracy: 1
   animator: {fileID: 2856203500346429453}
   enemyHitParticles: {fileID: 7568804557577700942}
@@ -6323,5 +6323,5 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
+  m_Constraints: 112
   m_CollisionDetection: 0
