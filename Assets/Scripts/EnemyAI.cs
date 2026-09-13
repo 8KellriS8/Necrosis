@@ -1,50 +1,42 @@
 ﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.AI; // Îáÿçàòåëüíî äëÿ ðàáîòû ñ NavMesh
+using UnityEngine.AI; 
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyAI : MonoBehaviour
 {
 
-    [Header("Õàðàêòåðèñòèêè")]
     public float hp = 100f;
     public float moveSpeed = 2f;
     
-    [Header("Äèñòàíöèè")]
-    public float attackDistance = 3f; // Äèñòàíöèÿ, íà êîòîðîé íà÷èíàåòñÿ àòàêà
-    public float chaseDistance = 25f; // Íà êàêîì ðàññòîÿíèè âðàã íà÷èíàåò ïðåñëåäîâàòü èãðîêà
+    public float attackDistance = 3f; 
+    public float chaseDistance = 25f; 
 
-    [Header("Íàñòðîéêè ñîñòîÿíèÿ ïîêîÿ (NavMesh)")]
-    public float wanderRadius = 5f;       // Ðàäèóñ ñëó÷àéíîãî ïåðåäâèæåíèÿ
-    public float wanderInterval = 4f;     // Ðàç âî ñêîëüêî ñåêóíä èñêàòü íîâóþ òî÷êó
+    public float wanderRadius = 5f;       
+    public float wanderInterval = 4f;     
 
-    [Header("Òàéìèíãè àòàêè")]
-    public float attackCooldown = 1.5f;   // Äëèòåëüíîñòü îñòàíîâêè/àòàêè (âðåìÿ ïîêîÿ ïîñëå óäàðà)
-    public float damageActiveDuration = 0.5f; // Ñêîëüêî âðåìåíè àêòèâåí êîëëàéäåð óðîíà (13-é êàäð)
+    public float attackCooldown = 1.5f;   
+    public float damageActiveDuration = 0.5f; 
 
-    [Header("Ññûëêè íà êîìïîíåíòû")]
-    public Collider damageCollider;      // Ññûëêà íà ÄÎ×ÅÐÍÈÉ êîëëàéäåð óðîíà
+    public Collider damageCollider;    
 
-    // Ïóáëè÷íûå ïåðåìåííûå äëÿ DoomBillboard
     [HideInInspector] public bool isDead = false;
     [HideInInspector] public bool isAtacking = false;
 
-    private Transform target;             // Öåëü (èãðîê)
+    private Transform target;            
     private float wanderTimer;
-    private bool isCooldown = false;      // Ôëàã çàäåðæêè/îñòàíîâêè ÈÈ âî âðåìÿ àòàêè
-    private NavMeshAgent agent;           // Íàâèãàöèîííûé àãåíò
+    private bool isCooldown = false;     
+    private NavMeshAgent agent;          
 
     void Start()
     {
-        // Àâòîìàòè÷åñêè íàõîäèì èãðîêà ïî òåãó
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null) target = player.transform;
 
-        // Íàñòðàèâàåì NavMeshAgent
         agent = GetComponent<NavMeshAgent>();
         agent.speed = moveSpeed;
 
-        wanderTimer = wanderInterval; // Íà÷àòü äâèæåíèå ñðàçó â ñîñòîÿíèè ïîêîÿ
+        wanderTimer = wanderInterval; 
 
         if (damageCollider != null) damageCollider.enabled = false;
     }
@@ -53,7 +45,6 @@ public class EnemyAI : MonoBehaviour
     {
         if (isDead) return;
 
-        // Ïðîâåðêà çäîðîâüÿ
         if (hp <= 0)
         {
             Die();
@@ -62,50 +53,41 @@ public class EnemyAI : MonoBehaviour
 
         if (target == null) return;
 
-        // Äèñòàíöèÿ ðàññ÷èòûâàåòñÿ ïî NavMesh èëè ïî ïðÿìîé (äëÿ òî÷íîñòè èñïîëüçóåì Vector3.Distance)
         float distanceToTarget = Vector3.Distance(transform.position, target.position);
 
-        // Åñëè èäåò àòàêà èëè êóëäàóí — àãåíò ïîëíîñòüþ ñòîèò íà ìåñòå
         if (isCooldown || isAtacking)
         {
             StopAgent();
             return;
         }
-        // Ïðîâåðÿåì äèñòàíöèþ àòàêè
         if (distanceToTarget <= attackDistance)
         {
-            // Èãðîê äîñòàòî÷íî áëèçêî äëÿ àòàêè
             if (IsPlayerInFront())
             {
                 StartCoroutine(AttackRoutine());
             }
             else
             {
-                // Èãðîê áëèçêî, íî íàõîäèòñÿ ñçàäè/ñáîêó — èä¸ì ê íåìó
                 ResumeAgent();
                 agent.SetDestination(target.position);
             }
         }
         else if (distanceToTarget <= chaseDistance)
         {
-            // Èãðîê íàõîäèòñÿ â ïðåäåëàõ 25 ìåòðîâ — ïðåñëåäóåì åãî
             ResumeAgent();
             agent.SetDestination(target.position);
         }
         else
         {
-            // Èãðîê äàëüøå 25 ìåòðîâ — ñëó÷àéíî áëóæäàåì
             ResumeAgent();
             WanderBehavior();
         }
     }
 
-    // Ëîãèêà áëóæäàíèÿ ïî NavMesh
     private void WanderBehavior()
     {
         wanderTimer += Time.deltaTime;
 
-        // Èùåì íîâóþ òî÷êó, åñëè ïðîø¸ë èíòåðâàë ÈËÈ åñëè àãåíò óæå äîø¸ë äî ñòàðîé òî÷êè
         if (wanderTimer >= wanderInterval || (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending))
         {
             Vector3 newTarget = GetRandomNavMeshPoint(transform.position, wanderRadius);
@@ -114,23 +96,20 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Ïîèñê âàëèäíîé òî÷êè èìåííî ÍÀ ñåòêå NavMesh
     private Vector3 GetRandomNavMeshPoint(Vector3 center, float radius)
     {
         Vector3 randomDirection = Random.insideUnitSphere * radius;
         randomDirection += center;
 
         NavMeshHit hit;
-        // Èùåì áëèæàéøóþ òî÷êó íà NavMesh â ïðåäåëàõ ðàäèóñà (ìàñêà -1 îçíà÷àåò âñå ñëîè NavMesh)
         if (NavMesh.SamplePosition(randomDirection, out hit, radius, -1))
         {
             return hit.position;
         }
 
-        return center; // Åñëè òî÷êó íå íàøëè, âîçâðàùàåì òåêóùóþ ïîçèöèþ
+        return center; 
     }
 
-    // Ïðîâåðêà óñëîâèé ïåðåäíåãî ñïðàéòà (ñîâïàäàåò ñ ëîãèêîé DoomBillboard)
     private bool IsPlayerInFront()
     {
         Vector3 lookDir = target.position - transform.position;
@@ -141,40 +120,40 @@ public class EnemyAI : MonoBehaviour
 
         int directionIndex = Mathf.RoundToInt(angle / 60f) % 6;
 
-        // Èíäåêñû 0, 1 è 5 ñîîòâåòñòâóþò ïåðåäíèì ðàêóðñàì
         return directionIndex == 0 || directionIndex == 1 || directionIndex == 5;
     }
 
-    // Êîðóòèíà àòàêè
     private IEnumerator AttackRoutine()
     {
         isAtacking = true;
         isCooldown = true;
         StopAgent();
 
-        // Ìãíîâåííî äîâîðà÷èâàåì âðàãà ëèöîì ê èãðîêó ïåðåä óäàðîì
         Vector3 lookAtTarget = target.position - transform.position;
         lookAtTarget.y = 0;
         if (lookAtTarget != Vector3.zero) transform.forward = lookAtTarget.normalized;
 
-        // Âêëþ÷àåì òðèããåð íàíåñåíèÿ óðîíà
-        if (damageCollider != null) damageCollider.enabled = true;
+        // Ждём 0.5 секунды после начала атаки
+        yield return new WaitForSeconds(0.5f);
 
-        // Æäåì âðåìÿ àêòèâíîé ôàçû óðîíà (0.5 ñåê — 13-é êàäð)
+        // Включаем коллайдер
+        if (damageCollider != null)
+            damageCollider.enabled = true;
+
+        // Коллайдер активен 0.5 секунды
         yield return new WaitForSeconds(damageActiveDuration);
 
-        // Âûêëþ÷àåì òðèããåð óðîíà (14-é êàäð, çàñòûâàíèå)
-        if (damageCollider != null) damageCollider.enabled = false;
+        // Выключаем коллайдер
+        if (damageCollider != null)
+            damageCollider.enabled = false;
         isAtacking = false; 
 
-        // Äîæèäàåìñÿ îêîí÷àíèÿ îáùåãî êóëäàóíà àòàêè
         float remainingCooldown = Mathf.Max(0f, attackCooldown - damageActiveDuration);
         yield return new WaitForSeconds(remainingCooldown);
 
         isCooldown = false;
     }
 
-    // Âñïîìîãàòåëüíûå ìåòîäû óïðàâëåíèÿ NavMeshAgent
     private void StopAgent()
     {
         if (agent.isOnNavMesh)
@@ -208,7 +187,6 @@ public class EnemyAI : MonoBehaviour
 
         if (damageCollider != null) damageCollider.enabled = false;
         
-        // Ïîëíîñòüþ îòêëþ÷àåì NavMeshAgent, ÷òîáû îí íå ìåøàë ôèçèêå è äðóãèì îáúåêòàì
         if (agent != null)
         {
             agent.enabled = false; 
@@ -217,6 +195,5 @@ public class EnemyAI : MonoBehaviour
         Collider mainCollider = GetComponent<Collider>();
         if (mainCollider != null) mainCollider.enabled = false;
 
-        Debug.Log($"{gameObject.name} óíè÷òîæåí (NavMeshAgent îòêëþ÷åí).");
     }
 }

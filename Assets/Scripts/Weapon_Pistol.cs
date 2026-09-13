@@ -8,6 +8,9 @@ public class Weapon : MonoBehaviour
     public float shootDuration = 0.1f;
     public float dmg = 10f;
     public float accuracy = 1f;
+    public bool isAutomatic = false;
+    public float shootDelay = 0.8f;
+    private float nextShootTime = 0f;
     public Animator animator;
     [Header("Эффекты выстрела")]
     public ParticleSystem enemyHitParticles; // Ссылка на префаб или объект ParticleSystem на сцене
@@ -29,7 +32,7 @@ public class Weapon : MonoBehaviour
         Mouse mouse = Mouse.current;
         if (mouse == null) return;
         // Shift зажат = Idle, иначе Aim
-        if (keyboard.leftShiftKey.isPressed)
+        if (keyboard.leftShiftKey.isPressed && (keyboard.wKey.isPressed || keyboard.aKey.isPressed || keyboard.sKey.isPressed || keyboard.dKey.isPressed))
         {
             if (!isShooting)
             {
@@ -47,9 +50,19 @@ public class Weapon : MonoBehaviour
         }
 
         // Выстрел
-        if (mouse.leftButton.wasPressedThisFrame && !isShooting)
+        if (isAutomatic)
         {
-            Shoot();
+            if (mouse.leftButton.isPressed && !isShooting && Time.time >= nextShootTime)
+            {
+                Shoot();
+            }
+        }
+        else
+        {
+            if (mouse.leftButton.wasPressedThisFrame && !isShooting)
+            {
+                Shoot();
+            }
         }
 
         // Таймер
@@ -61,7 +74,7 @@ public class Weapon : MonoBehaviour
                 animator.SetBool("Shooting", false);
                 isShooting = false;
                 // Возврат
-                if (keyboard.leftShiftKey.isPressed)
+                if (keyboard.leftShiftKey.isPressed && (keyboard.wKey.isPressed || keyboard.aKey.isPressed || keyboard.sKey.isPressed || keyboard.dKey.isPressed))
                     ShowState(WeaponState.Idle);
                 else
                     ShowState(WeaponState.Aim);
@@ -71,6 +84,7 @@ public class Weapon : MonoBehaviour
 
     void Shoot()
     {
+        nextShootTime = Time.time + shootDelay;
         isShooting = true;
         animator.SetBool("Shooting", true);
         timer = shootDuration;
@@ -79,7 +93,12 @@ public class Weapon : MonoBehaviour
         // Raycast выстрел из центра экрана
         RaycastHit hit;
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        float spread = (1f - accuracy) * 5f;
+        Vector3 direction = ray.direction;
+        direction += Random.insideUnitSphere * spread;
+        direction.Normalize();
 
+        ray.direction = direction;
         // Проверяем, попал ли рейкаст во что-нибудь в пределах 100 метров
         if (Physics.Raycast(ray, out hit, 100f))
         {
