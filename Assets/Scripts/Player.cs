@@ -10,6 +10,7 @@ public class Player : MonoBehaviour
     private float speedMult = 1.0f;
     public int ammo1 = 0;
     public int ammo2 = 0;
+    public int ammo3 = 0;
 
     void Update()
     {
@@ -23,11 +24,11 @@ public class Player : MonoBehaviour
         if (keyboard.dKey.isPressed) input.x += 1;
         if (keyboard.leftShiftKey.isPressed)
         {
-            speedMult = 2.0f;
+            speedMult = 1.25f;
         }
         else
         {
-            speedMult = 0.75f;
+            speedMult = 0.55f;
         }
         input = input.normalized;
         
